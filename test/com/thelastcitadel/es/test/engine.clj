@@ -14,34 +14,34 @@
 (declare ^:dynamic *client*)
 
 (use-fixtures :each
-              (fn [f]
-                (let [node (-> (NodeBuilder/nodeBuilder)
-                               (.settings (-> (ImmutableSettings/settingsBuilder)
-                                              (.put "path.data" "target/data")
-                                              (.put "script.disable_dynamic" false)
-                                              (.put "cluster.name" (str "test-cluster-" (NetworkUtils/getLocalAddress)))
-                                              (.put "gateway.type" "none")
-                                              (.put "number_of_shards" 1)))
-                               (.node))]
-                  (binding [*client* (.client node)]
-                    (try
-                      (f)
-                      (finally
-                        (.close *client*)
-                        (.close node)))))))
+  (fn [f]
+    (let [node (-> (NodeBuilder/nodeBuilder)
+                   (.settings (-> (ImmutableSettings/settingsBuilder)
+                                  (.put "path.data" "target/data")
+                                  (.put "script.disable_dynamic" false)
+                                  (.put "cluster.name" (str "test-cluster-" (NetworkUtils/getLocalAddress)))
+                                  (.put "gateway.type" "none")
+                                  (.put "number_of_shards" 1)))
+                   (.node))]
+      (binding [*client* (.client node)]
+        (try
+          (f)
+          (finally
+            (.close *client*)
+            (.close node)))))))
 
 (defn json
   ([m]
-     (json (-> (XContentFactory/jsonBuilder)
-               (.startObject))
-           m))
+   (json (-> (XContentFactory/jsonBuilder)
+             (.startObject))
+         m))
   ([builder m]
-     (.endObject
-      (reduce
-       (fn [obj [k v]]
-         (.field obj (name k) v))
-       builder
-       m))))
+   (.endObject
+    (reduce
+     (fn [obj [k v]]
+       (.field obj (name k) v))
+     builder
+     m))))
 
 (defn exec [o]
   (.actionGet (.execute o)))
@@ -59,13 +59,12 @@
                     (QueryBuilders/matchAllQuery)
                     (-> (FilterBuilders/scriptFilter
                          (pr-str
-                          '(fn [env]
-                             (clojure.tools.logging/info "Hello World")
-                             (> (value (get (get env "doc") "num1")) 1.0))))
+                          '(clojure.tools.logging/info "Hello World")
+                          '(> (-> env (:doc) (get "num1") (value)) 1.0)))
                         (.lang "clojure"))))
         (.addSort "num1" SortOrder/ASC)
         (.addScriptField "sNum1" "clojure"
-                         (pr-str '(fn [env] (value (get (get env "doc") "num1")))) nil)
+                         (pr-str '(value (get (get env "doc") "num1"))) nil)
         exec
         (doto (-> .getHits .totalHits (= 2) is))
         (doto (-> .getHits (.getAt 0) .id (= "2") is))
@@ -78,14 +77,13 @@
                     (QueryBuilders/matchAllQuery)
                     (-> (FilterBuilders/scriptFilter
                          (pr-str
-                          '(fn [env]
-                             (> (value (get (get env "doc") "num1"))
-                                (get env "param1")))))
+                          '(> (value (get (get env "doc") "num1"))
+                              (get env "param1"))))
                         (.lang "clojure")
                         (.addParam "param1" 2))))
         (.addSort "num1" SortOrder/ASC)
         (.addScriptField "sNum1" "clojure"
-                         (pr-str '(fn [env] (value (get (get env "doc") "num1")))) nil)
+                         (pr-str '(value (get (get env "doc") "num1"))) nil)
         exec
         (doto (-> .getHits .totalHits (= 1) is))
         (doto (-> .getHits (.getAt 0) .id (= "3") is))
@@ -96,14 +94,13 @@
                     (QueryBuilders/matchAllQuery)
                     (-> (FilterBuilders/scriptFilter
                          (pr-str
-                          '(fn [env]
-                             (> (value (get (get env "doc") "num1"))
-                                (get env "param1")))))
+                          '(> (value (get (get env "doc") "num1"))
+                              (get env "param1"))))
                         (.lang "clojure")
                         (.addParam "param1" -1))))
         (.addSort "num1" SortOrder/ASC)
         (.addScriptField "sNum1" "clojure"
-                         (pr-str '(fn [env] (value (get (get env "doc") "num1")))) nil)
+                         (pr-str '(value (get (get env "doc") "num1"))) nil)
         exec
         (doto (-> .getHits .totalHits (= 3) is))
         (doto (-> .getHits (.getAt 0) .id (= "1") is))

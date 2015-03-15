@@ -5,10 +5,13 @@ a scripting language for elasticsearch queries
 
 ## Usage
 
-`lein package`
+```
+lein uberjar
+plugin --url file://`pwd`/target/elasticsearch-lang-clojure-0.3.0-SNAPSHOT-standalone.jar  -i elasticsearch-lang-clojure
+```
 
-elasticsearch is pretty crazy, check the docs, figure out how to
-install plugins
+Scripts are implicitly wrapped in a `do` form and evaluate with `env` bound to
+a map holding script params and special context-based maps (e.g. _source, ctx, etc.)
 
 ## License
 
