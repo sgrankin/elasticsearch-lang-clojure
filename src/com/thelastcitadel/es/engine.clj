@@ -3,9 +3,9 @@
             [clojure.walk :refer [keywordize-keys]]
             [com.thelastcitadel.es.core])
   (:gen-class
-   :extends org.elasticsearch.common.component.AbstractComponent
-   :implements [org.elasticsearch.script.ScriptEngineService]
-   :constructors {^{org.elasticsearch.common.inject.Inject true} [org.elasticsearch.common.settings.Settings]
+    :extends org.elasticsearch.common.component.AbstractComponent
+    :implements [org.elasticsearch.script.ScriptEngineService]
+    :constructors {^{org.elasticsearch.common.inject.Inject true} [org.elasticsearch.common.settings.Settings]
                   [org.elasticsearch.common.settings.Settings]}))
 
 (defn -init [s]
